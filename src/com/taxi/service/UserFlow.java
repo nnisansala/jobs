@@ -17,7 +17,7 @@ import java.util.Scanner;
 
 public class UserFlow {
 
-    final static Scanner scanner = new Scanner(System.in);
+    static Scanner scanner = new Scanner(System.in);
     private static int loggedInClientId = 0;
 
     public static void userLoginWorkFlow(int clientId) {
@@ -30,16 +30,17 @@ public class UserFlow {
 
     private static void processAction(int retry) {
         String option = scanner.nextLine();
-        if("Order Taxi".equalsIgnoreCase(option)) {
+        if ("Order Taxi".equalsIgnoreCase(option)) {
             OderTaxi.orderTaxiWorkFlow(loggedInClientId);
         } else if ("Account Actions".equalsIgnoreCase(option)) {
-            AccountAction.accountActionWorkFlow();
+            AccountAction.accountActionWorkFlow(loggedInClientId);
         } else {
-            if(retry == 0) {
+            if (retry == 0) {
                 System.out.println("Invalid action selected, please enter correct action:");
                 processAction(1);
             } else {
-                System.out.println("Invalid action selected, closing application");
+                System.err.println("Invalid action selected");
+                MainView.getConfirmationForMain();
             }
         }
     }

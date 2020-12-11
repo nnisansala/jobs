@@ -1,16 +1,3 @@
-// Persistent Systems
-//
-// All Rights Reserved.
-//
-// This document or any part thereof may not, without the written
-// consent of AePONA Limited, be copied, reprinted or reproduced in
-// any material form including but not limited to photocopying,
-// transcribing, transmitting or storing it in any medium or
-// translating it into any language, in any form or by any means,
-// be it electronic, mechanical, xerographic, optical,
-// magnetic or otherwise.
-//
-//nn40238
 package com.taxi.service;
 
 import java.text.ParseException;
@@ -21,46 +8,46 @@ import java.util.regex.Pattern;
 
 public class CreateAccount {
 
-    final static Scanner scanner = new Scanner(System.in);
+    static Scanner scanner = new Scanner(System.in);
 
     /**
-     Handle Create Account flow
+     * Handle Create Account flow
      */
     public static void createClientAccountWorkFlow() {
         System.out.println("Please fill the following information about your self: ");
         System.out.print("Name : ");
-        String name =  scanner.nextLine();
+        String name = scanner.nextLine();
         name = TaxiAppUtil.validateUserEntriesWithRetry(name, "Name", null);
         System.out.print("Birth Date (dd/mm/yyyy): ");
-        String birthDate =  scanner.nextLine();
+        String birthDate = scanner.nextLine();
         birthDate = TaxiAppUtil.validateUserEntriesWithRetry(birthDate, "Birth Date", null);
         String dateRegex = "^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$";
         Pattern pattern = Pattern.compile(dateRegex);
         Matcher matcher = pattern.matcher(birthDate);
         boolean bool = matcher.matches();
-        if(!bool) {
-           System.out.println("Invalid date format");
-           System.exit(0);
+        if (!bool) {
+            System.out.println("Invalid date format");
+            System.exit(0);
         }
         System.out.print("Email Address : ");
-        String email =  scanner.nextLine();
+        String email = scanner.nextLine();
         email = TaxiAppUtil.validateUserEntriesWithRetry(email, "Email Address", null);
         System.out.print("Address : ");
-        String address =  scanner.nextLine();
+        String address = scanner.nextLine();
         address = TaxiAppUtil.validateUserEntriesWithRetry(address, "Address", null);
         System.out.print("Postal Code : ");
-        String postalCode =  scanner.nextLine();
+        String postalCode = scanner.nextLine();
         postalCode = TaxiAppUtil.validateUserEntriesWithRetry(postalCode, "Postal Code", null);
         System.out.print("Location : ");
-        String location =  scanner.nextLine();
+        String location = scanner.nextLine();
         location = TaxiAppUtil.validateUserEntriesWithRetry(location, "Location", null);
         System.out.print("Username : ");
-        String username =  scanner.nextLine();
+        String username = scanner.nextLine();
         username = TaxiAppUtil.validateUserEntriesWithRetry(username, "Username", null);
         System.out.print("password : ");
-        String password =  scanner.nextLine();
+        String password = scanner.nextLine();
         password = TaxiAppUtil.validateUserEntriesWithRetry(password, "Password", null);
-        // TODO Call to DB
+
         Account account = new Account();
         account.setAddress(address);
         try {
@@ -74,12 +61,15 @@ public class CreateAccount {
         account.setPostalCode(postalCode);
         account.setUserName(username);
         account.setPassword(password);
-        int clientId = DbManager.createAccount(account);
-        UserFlow.userLoginWorkFlow(clientId);
+        int accountId = DbManager.createAccount(account);
+        if(accountId > 0) {
+            UserLogin.userLoginWorkflow();
+        } else {
+            System.err.println("Account is not created due to system error. ");
+            MainView.getConfirmationForMain();
+        }
 
     }
-
-
 
 
 }

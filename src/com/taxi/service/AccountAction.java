@@ -1,42 +1,35 @@
-// Persistent Systems
-//
-// All Rights Reserved.
-//
-// This document or any part thereof may not, without the written
-// consent of AePONA Limited, be copied, reprinted or reproduced in
-// any material form including but not limited to photocopying,
-// transcribing, transmitting or storing it in any medium or
-// translating it into any language, in any form or by any means,
-// be it electronic, mechanical, xerographic, optical,
-// magnetic or otherwise.
-//
-//nn40238
 package com.taxi.service;
 
 import java.util.Scanner;
 
 public class AccountAction {
-    final static Scanner scanner = new Scanner(System.in);
+    static Scanner scanner = new Scanner(System.in);
 
-    public static void accountActionWorkFlow() {
+    public static void accountActionWorkFlow(int clientId) {
         System.out.println("Please choose the action");
         System.out.println("\t> Delete Account \t\t> Go Back");
-        processAction(0);
+        processAction(0, clientId);
     }
 
-    private static void processAction(int retry) {
+    private static void processAction(int retry, int clientId) {
         String option = scanner.nextLine();
-        if("Delete Account".equalsIgnoreCase(option)) {
-            System.out.println("Your account was deleted successfully.");
-        } else if("Go Back".equalsIgnoreCase(option)) {
-            UserFlow.userLoginWorkFlow(1);
-        } else {
-            if(retry == 0) {
-                System.out.println("Invalid action selected, please enter correct action:");
-                processAction(1);
+        if ("Delete Account".equalsIgnoreCase(option)) {
+            boolean isDeleted = DbManager.deleteClient(clientId);
+            if (isDeleted) {
+                System.out.println("Your account was deleted successfully.");
             } else {
-                System.out.println("Invalid action selected, closing application");
+                System.err.println("System Error Occurred");
+            }
+        } else if ("Go Back".equalsIgnoreCase(option)) {
+            UserFlow.userLoginWorkFlow(clientId);
+        } else {
+            if (retry == 0) {
+                System.out.println("Invalid action selected, please enter correct action:");
+                processAction(1, clientId);
+            } else {
+                System.err.println("Invalid action selected");
             }
         }
+        MainView.getConfirmationForMain();
     }
 }

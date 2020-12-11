@@ -1,16 +1,3 @@
-// Persistent Systems
-//
-// All Rights Reserved.
-//
-// This document or any part thereof may not, without the written
-// consent of AePONA Limited, be copied, reprinted or reproduced in
-// any material form including but not limited to photocopying,
-// transcribing, transmitting or storing it in any medium or
-// translating it into any language, in any form or by any means,
-// be it electronic, mechanical, xerographic, optical,
-// magnetic or otherwise.
-//
-//nn40238
 package com.taxi.service;
 
 import java.util.Date;
@@ -30,7 +17,7 @@ public class Account {
         return name;
     }
 
-    public void setName(final String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -38,7 +25,7 @@ public class Account {
         return birthDate;
     }
 
-    public void setBirthDate(final Date birthDate) {
+    public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
 
@@ -46,7 +33,7 @@ public class Account {
         return email;
     }
 
-    public void setEmail(final String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
@@ -54,7 +41,7 @@ public class Account {
         return address;
     }
 
-    public void setAddress(final String address) {
+    public void setAddress(String address) {
         this.address = address;
     }
 
@@ -62,7 +49,7 @@ public class Account {
         return location;
     }
 
-    public void setLocation(final String location) {
+    public void setLocation(String location) {
         this.location = location;
     }
 
@@ -70,7 +57,7 @@ public class Account {
         return postalCode;
     }
 
-    public void setPostalCode(final String postalCode) {
+    public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
     }
 
@@ -78,7 +65,7 @@ public class Account {
         return userName;
     }
 
-    public void setUserName(final String userName) {
+    public void setUserName(String userName) {
         this.userName = userName;
     }
 
@@ -86,7 +73,7 @@ public class Account {
         return password;
     }
 
-    public void setPassword(final String password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 
@@ -94,7 +81,7 @@ public class Account {
         return role;
     }
 
-    public void setRole(final String role) {
+    public void setRole(String role) {
         this.role = role;
     }
 }
