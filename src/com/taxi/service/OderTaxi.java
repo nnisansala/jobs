@@ -10,7 +10,8 @@ public class OderTaxi {
 
     public static void orderTaxiWorkFlow(int clientId) {
         System.out.println("Choose one of the following vehicles:");
-        List<String> vehicles = Vehicle.showVehicleList();
+        List<String> vehicles = VehicleService.showVehicleList();
+        userMenuView(clientId);
         String option = scanner.nextLine();
         List<String> validValue = new ArrayList<String>();
         for (int i = 0; i < vehicles.size(); i++) {
@@ -24,6 +25,16 @@ public class OderTaxi {
         } else {
             System.err.println("System error occurred, Please try again later");
             MainView.getConfirmationForMain();
+        }
+    }
+
+    private static void userMenuView(int clientId) {
+        System.out.print(" Enter 1 to go back to previous menu : ");
+        String option = scanner.nextLine();
+        if ("1".equals(option)) {
+            UserFlow.userLoginWorkFlow(clientId);
+        } else {
+            System.exit(0);
         }
     }
 

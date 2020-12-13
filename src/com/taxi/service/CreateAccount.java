@@ -3,8 +3,6 @@ package com.taxi.service;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CreateAccount {
 
@@ -20,15 +18,7 @@ public class CreateAccount {
         name = TaxiAppUtil.validateUserEntriesWithRetry(name, "Name", null);
         System.out.print("Birth Date (dd/mm/yyyy): ");
         String birthDate = scanner.nextLine();
-        birthDate = TaxiAppUtil.validateUserEntriesWithRetry(birthDate, "Birth Date", null);
-        String dateRegex = "^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$";
-        Pattern pattern = Pattern.compile(dateRegex);
-        Matcher matcher = pattern.matcher(birthDate);
-        boolean bool = matcher.matches();
-        if (!bool) {
-            System.out.println("Invalid date format");
-            System.exit(0);
-        }
+        birthDate = TaxiAppUtil.getDateParam(birthDate, "Birth Date");
         System.out.print("Email Address : ");
         String email = scanner.nextLine();
         email = TaxiAppUtil.validateUserEntriesWithRetry(email, "Email Address", null);
@@ -62,10 +52,12 @@ public class CreateAccount {
         account.setUserName(username);
         account.setPassword(password);
         int accountId = DbManager.createAccount(account);
-        if(accountId > 0) {
-            UserLogin.userLoginWorkflow();
+        if (accountId > 0) {
+            System.out.println("Account is created successfully");
+            System.out.println("Please login to the system");
+            UserLogin.userLoginWorkflow(false);
         } else {
-            System.err.println("Account is not created due to system error. ");
+            System.out.println("Account is not created due to system error. ");
             MainView.getConfirmationForMain();
         }
 

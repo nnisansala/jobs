@@ -13,9 +13,9 @@ import java.util.Map;
 
 public class DbManager {
     private static Connection conn = null;
-    private static String connectionUrl = "jdbc:mysql://remotemysql.com:3306/77gvvdVfnI?useSSL=false";
-    private static String connectionUser = "77gvvdVfnI";
-    private static String connectionPassword = "isrPvTxKlb";
+    private static String connectionUrl = "jdbc:mysql://remotemysql.com:3306/2Lq7oJ0sFQ?useSSL=false";
+    private static String connectionUser = "2Lq7oJ0sFQ";
+    private static String connectionPassword = "6kvqSw97LY";
 
     static {
         try {
@@ -81,8 +81,8 @@ public class DbManager {
             rs.close();
             statement.close();
             if (clientId > 0) {
-                sql = "INSERT INTO USERS(USERNAME, PASSWORD, CLIENT_ID) "
-                        + "VALUES(?,?,?,?)";
+                sql = "INSERT INTO APP_LOGIN(USERNAME, PASSWORD, CLIENT_ID) "
+                        + "VALUES(?,?,?)";
                 statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                 statement.setString(1, account.getUserName());
                 statement.setString(2, account.getPassword());
@@ -128,7 +128,6 @@ public class DbManager {
     private static int selectCompanyId() {
         int companyId = 0;
         try {
-
             String sql = "SELECT COMPANY_ID from TAXI_COMPANY";
             PreparedStatement statement = conn.prepareStatement(sql);
             ResultSet rs = statement.executeQuery();
@@ -162,7 +161,7 @@ public class DbManager {
     public static List<String> getVehicles() {
         List<String> vehicleNames = new ArrayList<>();
         try {
-            String sql = "SELECT MODEL_NAME from TAXI WHERE ACTIVE = 1";
+            String sql = "SELECT MODEL_NAME from TAXI_MODEL";
             PreparedStatement statement = conn.prepareStatement(sql);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
@@ -176,11 +175,15 @@ public class DbManager {
         return vehicleNames;
     }
 
-    public static boolean deleteVehicle(String vehicleName) {
+    public static boolean deleteVehicleByVehicleName(String vehicleName) {
         boolean isDeleted = false;
         try {
-            deleteBookingVehicleName(vehicleName);
-            deleteTaxiVehicleName(vehicleName);
+            deleteBookingByVehicleName(vehicleName);
+            List<Integer> registrationId = getRegistrationIdFromVehicleName(vehicleName);
+            deleteTaxiByVehicleName(vehicleName);
+            if(registrationId.size() > 0) {
+                deleteRegistrationById(registrationId);
+            }
             String sql = "DELETE from TAXI_MODEL WHERE MODEL_NAME = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setString(1, vehicleName);
@@ -195,60 +198,86 @@ public class DbManager {
         return isDeleted;
     }
 
-    private static void deleteBookingVehicleName(String vehicleName) {
+    private static void deleteBookingByVehicleName(String vehicleName) {
         try {
             String sql = "DELETE from BOOKING WHERE TAXI_ID in (SELECT T.ID from TAXI T, TAXI_MODEL TM WHERE T.MODEL_ID = TM.ID AND TM.MODEL_NAME = ?)";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setString(1, vehicleName);
-            int rs = statement.executeUpdate();
+            statement.executeUpdate();
         } catch (SQLException e) {
+            System.out.println(1);
+            System.err.println(e.getMessage());
         }
     }
 
-    private static void deleteTaxiVehicleName(String vehicleName) {
+    private static List<Integer> getRegistrationIdFromVehicleName(String vehicleName) {
+        List<Integer> registrationIds = new ArrayList<>();
+
         try {
-            String sql = "DELETE from TAXI T, TAXI_MODEL TM WHERE T.MODEL_ID = TM.ID AND TM.MODEL_NAME = ?";
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, vehicleName);
-            int rs = statement.executeUpdate();
-        } catch (SQLException e) {
-
-        }
-
-    }
-
-    private static int getModelId(String vehicleName) {
-        int modelId = 0;
-        try {
-
-            String sql = "SELECT ID from TAXI_MODEL WHERE MODEL_NAME = ?";
+            String sql = "SELECT REGISTRATION_ID from TAXI WHERE MODEL_ID in (SELECT MODEL_ID from TAXI_MODEL WHERE MODEL_NAME = ?)";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setString(1, vehicleName);
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                modelId = rs.getInt("ID");
+                registrationIds.add(rs.getInt("REGISTRATION_ID"));
             }
             rs.close();
+            statement.close();
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return registrationIds;
+    }
+
+    private static void deleteTaxiByVehicleName(String vehicleName) {
+        try {
+            String sql = "DELETE FROM TAXI WHERE MODEL_ID in (SELECT MODEL_ID FROM TAXI_MODEL WHERE MODEL_NAME = ?)";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, vehicleName);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+    }
+
+    private static void deleteRegistrationById(List<Integer> registrationIds) {
+        try {
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = 0; i < registrationIds.size(); i++) {
+                builder.append("?,");
+            }
+
+            String placeHolders = builder.deleteCharAt(builder.length() - 1).toString();
+
+            String sql = "DELETE from REGISTRATION WHERE REGISTRATION_ID (" + placeHolders + ")";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            int index = 1;
+            for (int o : registrationIds) {
+                statement.setInt(index++, o);
+            }
+            statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
         }
-        return modelId;
     }
 
-    public static boolean deleteDriver(String driverName) {
+    public static boolean deleteDriverByDriverName(String driverName) {
         try {
-            int driverId = getDriverId(driverName);
+            int driverId = getDriverIdByDriverName(driverName);
             if (driverId == 0) {
                 return false;
             }
-            int taxiId = getTaxiIdFromDriverId(driverId);
+            int taxiId = getTaxiIdByDriverId(driverId);
             if (taxiId != 0) {
                 deleteBookingByTaxiId(taxiId);
-                deleteTaxi(taxiId);
+                deleteTaxiByTaxiId(taxiId);
             }
-            deleteLicence(driverId);
+            deleteLicenceByDriverId(driverId);
             String sql = "DELETE FROM DRIVER WHERE DRIVER_ID = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, driverId);
@@ -263,7 +292,7 @@ public class DbManager {
         return false;
     }
 
-    private static int getDriverId(String driverName) {
+    private static int getDriverIdByDriverName(String driverName) {
         int driverId = 0;
         try {
 
@@ -283,7 +312,7 @@ public class DbManager {
         return driverId;
     }
 
-    private static int getTaxiIdFromDriverId(int driverId) {
+    private static int getTaxiIdByDriverId(int driverId) {
         int taxiId = 0;
         try {
 
@@ -315,7 +344,7 @@ public class DbManager {
         }
     }
 
-    private static void deleteTaxi(int taxiId) {
+    private static void deleteTaxiByTaxiId(int taxiId) {
         try {
             String sql = "DELETE FROM TAXI WHERE ID = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
@@ -327,7 +356,7 @@ public class DbManager {
         }
     }
 
-    private static void deleteLicence(int driverId) {
+    private static void deleteLicenceByDriverId(int driverId) {
         try {
             String sql = "DELETE FROM LICENCE WHERE DRIVER_ID = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
@@ -339,23 +368,125 @@ public class DbManager {
         }
     }
 
-    public static int addVehicle(String vehicleName) {
-        int recordId = 0;
+    public static int addVehicle(Vehicle vehicle) {
+        int taxiId = 0;
+        int companyId = selectCompanyId();
+        int modelId = addModel(vehicle);
+        int registrationId = addRegistration(vehicle);
+        try {
+            String sql = "INSERT INTO TAXI(ACTIVE, DRIVER_ID, REGISTRATION_ID, MODEL_ID, COMPANY_ID) "
+                    + "VALUES(?,?,?,?,?)";
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setBoolean(1, vehicle.isActive());
+            statement.setInt(2, vehicle.getDriverId());
+            statement.setInt(3, registrationId);
+            statement.setInt(4, modelId);
+            statement.setInt(5, companyId);
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
 
-
-        return recordId;
+            if (rs != null && rs.next()) {
+                taxiId = rs.getInt(1);
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return taxiId;
     }
 
-    public static int addDriver(String driverName) {
-        int recordId = 0;
+    private static int addModel(Vehicle vehicle) {
+        int modelId = 0;
+        try {
+            String sql = "INSERT INTO TAXI_MODEL(MODEL_NAME, MODEL_DESCRIPTION) "
+                    + "VALUES(?,?)";
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, vehicle.getModelName());
+            statement.setString(2, vehicle.getModelDescription());
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
 
+            if (rs != null && rs.next()) {
+                modelId = rs.getInt(1);
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return modelId;
+    }
 
-        return recordId;
+    private static int addRegistration(Vehicle vehicle) {
+        int registrationId = 0;
+        try {
+            String sql = "INSERT INTO REGISTRATION(REGISTRATION_DATE, LICENCE_PALTE_NR) "
+                    + "VALUES(?,?)";
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setDate(1, new java.sql.Date(vehicle.getRegistrationDate().getTime()));
+            statement.setString(2, vehicle.getLicencePlateNumber());
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
+
+            if (rs != null && rs.next()) {
+                registrationId = rs.getInt(1);
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return registrationId;
+    }
+
+    public static int addDriver(Driver driver) {
+        int companyId = selectCompanyId();
+        int driverId = 0;
+        try {
+            String sql = "INSERT INTO DRIVER(FIRST_NAME, LAST_NAME, BIRTH_DATE, WORKING, COMPANY_ID) "
+                    + "VALUES(?,?,?,?,?)";
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, driver.getFirstName());
+            statement.setString(2, driver.getLastName());
+            statement.setDate(3, new java.sql.Date(driver.getBirthDate().getTime()));
+            statement.setBoolean(4, driver.isWorking());
+            statement.setInt(5, companyId);
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
+
+            if (rs != null && rs.next()) {
+                driverId = rs.getInt(1);
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        addLicence(driver, driverId);
+        return driverId;
+    }
+
+    private static void addLicence(Driver driver, int driverId) {
+        try {
+            String sql = "INSERT INTO LICENCE(LICENCE_NR, EXPIRY_DATE, DRIVER_ID) "
+                    + "VALUES(?,?,?)";
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, driver.getLicenceNumber());
+            statement.setDate(2, new java.sql.Date(driver.getExpiryDate().getTime()));
+            statement.setInt(3, driverId);
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     public static int addBooking(String modelName, int clientId) {
         int bookingId = 0;
-        int taxiId = getTaxiId(modelName);
+        int taxiId = getTaxiIdByModelName(modelName);
         if (taxiId != 0) {
             try {
                 String sql = "INSERT INTO BOOKING(CLIENT_ID, TAXI_ID) "
@@ -379,7 +510,7 @@ public class DbManager {
         return bookingId;
     }
 
-    private static int getTaxiId(String modelName) {
+    private static int getTaxiIdByModelName(String modelName) {
         int taxiId = 0;
         try {
             String sql = "SELECT T.ID from TAXI T, TAXI_MODEL TM WHERE T.MODEL_ID = TM.ID AND TM.MODEL_NAME = ?";
@@ -398,9 +529,10 @@ public class DbManager {
         return taxiId;
     }
 
-    public static boolean deleteClient(int clientId) {
+    public static boolean deleteClientByClientId(int clientId) {
         boolean isDeleted = false;
         deleteBookingByClientId(clientId);
+        deleteLoggingByClientId(clientId);
         try {
             String sql = "DELETE FROM CLIENT WHERE CLIENT_ID = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
@@ -427,5 +559,50 @@ public class DbManager {
             System.err.println(e.getMessage());
         }
 
+    }
+
+    private static void deleteLoggingByClientId(int clientId) {
+        try {
+            String sql = "DELETE FROM APP_LOGIN WHERE CLIENT_ID = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, clientId);
+            statement.executeUpdate();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    public static int getDriverByIdOrName(String driver) {
+        int driverId = 0;
+        try {
+            String sql = "SELECT DRIVER_ID from DRIVER WHERE CONCAT(FIRST_NAME, ' ', LAST_NAME) = ? OR DRIVER_ID = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, driver);
+            if (isInteger(driver)) {
+                statement.setInt(2, Integer.parseInt(driver));
+            } else {
+                statement.setInt(2, 0);
+            }
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                driverId = rs.getInt("DRIVER_ID");
+            }
+            rs.close();
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+        return driverId;
+    }
+
+    private static boolean isInteger(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

@@ -15,6 +15,8 @@ public class AdminFlow {
         System.out.println("4. Add vehicle");
         System.out.println("5. Remove driver");
         System.out.println("6. Remove vehicle");
+        System.out.println("7. Main Menu");
+        System.out.print(": ");
         processAction(0);
     }
 
@@ -22,23 +24,25 @@ public class AdminFlow {
         String option = scanner.nextLine();
         if ("See list of available drives".equalsIgnoreCase(option)
                 || "1".equalsIgnoreCase(option)) {
-            Driver.showAvailableDrivers();
-
+            DriverService.showAvailableDrivers();
         } else if ("See list of available vehicles".equalsIgnoreCase(option)
                 || "2".equalsIgnoreCase(option)) {
-            Vehicle.showAvailableVehicles();
+            VehicleService.showAvailableVehicles();
         } else if ("Add driver".equalsIgnoreCase(option)
                 || "3".equalsIgnoreCase(option)) {
-            Driver.addDriver();
+            DriverService.addDriver();
         } else if ("Add vehicle".equalsIgnoreCase(option)
                 || "4".equalsIgnoreCase(option)) {
-            Vehicle.addVehicle();
+            VehicleService.addVehicle();
         } else if ("Remove driver".equalsIgnoreCase(option)
                 || "5".equalsIgnoreCase(option)) {
-            Driver.removeDriver();
+            DriverService.removeDriver();
         } else if ("Remove vehicle".equalsIgnoreCase(option)
                 || "6".equalsIgnoreCase(option)) {
-            Vehicle.removeVehicle();
+            VehicleService.removeVehicle();
+        } else if ("Main Menu".equalsIgnoreCase(option)
+                || "7".equalsIgnoreCase(option)) {
+            MainView.mainView();
         } else {
             if (retry == 0) {
                 System.out.println("Invalid action selected, please enter correct action:");
