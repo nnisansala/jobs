@@ -1,0 +1,19 @@
+Please setup the database in mysql server.
+Execute the given SQL against the created database to create schema.
+Change the database configuration in DBManager class
+
+    private static String connectionUrl = "jdbc:mysql://<db_host>:<db_port>/<database>?useSSL=false";
+    private static String connectionUser = "<user_name>";
+    private static String connectionPassword = "<password>";
+
+ Replace the following values with correct configuration:
+    <db-host> : mysql server url
+    <db-port> : mysql server port
+    <database> : database name
+    <user_name> : db username
+    <password> : db password
+
+ Add the mysql-connector-java-8.0.21.jar file in the project to library path.
+    File ->Project Structure -> Module -> Dependencies -> click on + -> JARs or Directories -> Select the JAR
+
+ Run the application using TaxiApplication class.
